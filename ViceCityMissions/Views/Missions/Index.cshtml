@@ -1,0 +1,68 @@
+﻿@model ViceCityMissions.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Misiones";
+}
+
+<h1 class="mb-3">🌴 Misiones del día</h1>
+
+@if (TempData["Msg"] is string msg)
+{
+    <div class="alert alert-info">@msg</div>
+}
+
+<!-- Puntuación total -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat"><small>PUNTUACIÓN TOTAL</small><h2>⭐ @Model.TotalPoints</h2></div></div>
+    <div class="col-md-4"><div class="stat"><small>HOY</small><h2>@Model.CompletedToday.Count / @Model.Missions.Count · @Model.PointsToday pts</h2></div></div>
+    <div class="col-md-4">
+        <div class="stat">
+            <small>RANGO</small><h2 class="rank">@Model.Rank</h2>
+            @if (Model.NextRankAt > 0)
+            {
+                <small>Siguiente rango: @Model.NextRankAt pts</small>
+            }
+        </div>
+    </div>
+</div>
+
+<a asp-action="Create" class="btn btn-warning mb-3">+ Nueva misión</a>
+
+<!-- Lista de misiones -->
+<div class="missions">
+    @foreach (var m in Model.Missions)
+    {
+        var done = Model.CompletedToday.Contains(m.Id);
+        <div class="mission @(done ? "done" : "")">
+            <div class="icon">@m.Icon</div>
+            <div class="info">
+                <strong>@m.Title</strong>
+                <div class="text-muted small">@m.Description</div>
+            </div>
+
+            <!-- Asignar puntos -->
+            <form asp-action="SetPoints" asp-route-id="@m.Id" method="post" class="pts-form">
+                <input type="number" name="points" value="@m.Points" min="1" max="1000" class="form-control form-control-sm" />
+                <button class="btn btn-sm btn-outline-light">Guardar</button>
+            </form>
+
+            <!-- Completar / Deshacer -->
+            @if (done)
+            {
+                <form asp-action="Undo" asp-route-id="@m.Id" method="post">
+                    <button class="btn btn-sm btn-success">✔ Hecha (deshacer)</button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="Complete" asp-route-id="@m.Id" method="post">
+                    <button class="btn btn-sm btn-danger">Completar +@m.Points</button>
+                </form>
+            }
+
+            <form asp-action="Delete" asp-route-id="@m.Id" method="post"
+                  onsubmit="return confirm('¿Eliminar esta misión?');">
+                <button class="btn btn-sm btn-outline-secondary">🗑</button>
+            </form>
+        </div>
+    }
+</div>}
